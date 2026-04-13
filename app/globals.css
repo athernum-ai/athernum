@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Geist:wght@300;400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0a0c0f;
+  --bg2: #111418;
+  --bg3: #181c22;
+  --bg4: #1e242c;
+  --border: #2a3040;
+  --border2: #3a4560;
+  --text: #e8edf4;
+  --text2: #8a9ab5;
+  --text3: #4a5a70;
+  --accent: #3b82f6;
+  --accent2: #1d4ed8;
+  --accentg: #10b981;
+  --accentr: #ef4444;
+  --accenty: #f59e0b;
+  --serif: 'Instrument Serif', serif;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Geist', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+@layer utilities {
+  .font-serif-custom { font-family: var(--serif); }
+  .font-mono-custom  { font-family: var(--mono); }
+  .font-sans-custom  { font-family: var(--sans); }
+}
