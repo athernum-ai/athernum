@@ -1,15 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { TICKERS } from '@/lib/data'
 import { Pill } from '@/components/ui'
+import type { TickerMap } from '@/types'
 
 interface SearchPageProps {
   onTickerNav: (ticker: string) => void
   initialQuery?: string
+  tickers: TickerMap
 }
 
-export default function SearchPage({ onTickerNav, initialQuery = '' }: SearchPageProps) {
+export default function SearchPage({ onTickerNav, initialQuery = '', tickers }: SearchPageProps) {
   const [query, setQuery] = useState(initialQuery)
 
   useEffect(() => {
@@ -17,7 +18,7 @@ export default function SearchPage({ onTickerNav, initialQuery = '' }: SearchPag
   }, [initialQuery])
 
   const matches = query.length > 0
-    ? Object.entries(TICKERS).filter(
+    ? Object.entries(tickers).filter(
         ([k, v]) =>
           k.includes(query.toUpperCase()) ||
           v.name.toUpperCase().includes(query.toUpperCase())

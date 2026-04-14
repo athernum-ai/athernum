@@ -47,8 +47,8 @@ export function ArticleCard({ article, onClick }: { article: Article; onClick?: 
             {article.source}
           </span>
           <span className="text-[10px] text-[var(--text3)] font-mono-custom">{article.time}</span>
-          {article.tags.map((tag) => (
-            <Tag key={tag.label} label={tag.label} variant={tag.variant} />
+          {article.tags.map((tag, i) => (
+            <Tag key={`${tag.label}-${i}`} label={tag.label} variant={tag.variant} />
           ))}
         </div>
         <div className="text-[14px] text-[var(--text)] font-medium leading-snug mb-1.5">

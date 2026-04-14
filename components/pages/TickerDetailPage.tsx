@@ -9,7 +9,8 @@ import {
   Tooltip,
 } from 'recharts'
 import { Pill, ArticleCard } from '@/components/ui'
-import { TICKERS, SUMMARIES, genChartData, BASE_PRICES, RANGE_CONFIG } from '@/lib/data'
+import { SUMMARIES, genChartData, BASE_PRICES, RANGE_CONFIG } from '@/lib/data'
+import type { TickerMap } from '@/types'
 
 const RANGES = ['1D', '1W', '1M', '3M', '1Y'] as const
 type Range = (typeof RANGES)[number]
@@ -32,6 +33,7 @@ const RELATED_ARTICLES = [
 interface TickerDetailPageProps {
   ticker: string
   onBack: () => void
+  tickers: TickerMap
 }
 
 const badgeColors = {
@@ -40,11 +42,11 @@ const badgeColors = {
   detailed: 'bg-[#8b5cf615] text-[#8b5cf6]',
 }
 
-export default function TickerDetailPage({ ticker, onBack }: TickerDetailPageProps) {
+export default function TickerDetailPage({ ticker, onBack, tickers }: TickerDetailPageProps) {
   const [range, setRange] = useState<Range>('1W')
   const [level, setLevel] = useState(0)
 
-  const t = TICKERS[ticker] ?? TICKERS['AAPL']
+  const t = tickers[ticker] ?? tickers['AAPL']
   const cfg = RANGE_CONFIG[range]
   const base = BASE_PRICES[ticker] ?? 180
 
