@@ -22,17 +22,22 @@ export function useSupabaseData(): SupabaseData {
 
   useEffect(() => {
     const client = getSupabaseClient()
-    if (!client) return
+    if (!client) {
+      setConnected(false)
+      return
+    }
 
     setLoading(true)
 
+    const supabase = client
+
     async function load() {
       const [tickersRes, watchlistRes, articlesRes] = await Promise.all([
-        client
+        supabase
           .from('tickers')
           .select('symbol,name,price,chg,dir,open,high,low,cap'),
-        client.from('watchlist').select('symbol').order('position'),
-        client
+        supabase.from('watchlist').select('symbol').order('position'),
+        supabase
           .from('articles')
           .select('source,time,tags,title,summary,ticker')
           .order('published_at', { ascending: false })
