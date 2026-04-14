@@ -24,10 +24,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ symbol:
   const supabase = getSupabaseServerClient()
   const fmpKey = process.env.FMP_API_KEY
 
-  // Debug logging (temporary)
-  console.log('FMP key exists:', !!process.env.FMP_API_KEY)
-  console.log('FMP key first 6:', process.env.FMP_API_KEY?.slice(0, 6))
-
   if (!supabase || !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     console.error('Supabase env missing', {
       hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
