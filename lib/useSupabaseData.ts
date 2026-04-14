@@ -39,7 +39,7 @@ export function useSupabaseData(): SupabaseData {
         supabase.from('watchlist').select('symbol').order('position'),
         supabase
           .from('articles')
-          .select('source,time,tags,title,summary,ticker')
+          .select('id,source,time,tags,title,summary,ticker,published_at')
           .order('published_at', { ascending: false })
           .limit(20),
       ])

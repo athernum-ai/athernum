@@ -46,7 +46,23 @@ export default function TickerDetailPage({ ticker, onBack, tickers }: TickerDeta
   const [range, setRange] = useState<Range>('1W')
   const [level, setLevel] = useState(0)
 
-  const t = tickers[ticker] ?? tickers['AAPL']
+  const t = tickers[ticker]
+  if (!t) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center gap-1.5 text-[12px] text-[var(--text3)] font-mono-custom mb-4">
+          <button onClick={onBack} className="hover:text-[var(--accent)] transition-colors">
+            Feed
+          </button>
+          <span className="text-[var(--border2)]">›</span>
+          <span className="text-[var(--text2)]">{ticker}</span>
+        </div>
+        <div className="bg-[var(--bg2)] border border-[var(--border)] rounded-[10px] p-5 text-[var(--text)]">
+          Ticker not found.
+        </div>
+      </div>
+    )
+  }
   const cfg = RANGE_CONFIG[range]
   const base = BASE_PRICES[ticker] ?? 180
 

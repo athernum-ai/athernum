@@ -58,7 +58,7 @@ export default function FeedPage({ onTickerNav, tickers, watchlist, articles }: 
 
       {articles.map((article, i) => (
         <ArticleCard
-          key={i}
+          key={article.id ?? `${article.source}-${article.title}-${i}`}
           article={article}
           onClick={() => article.ticker && onTickerNav(article.ticker)}
         />

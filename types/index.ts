@@ -29,6 +29,7 @@ export interface CalendarEvent {
 }
 
 export interface Article {
+  id?: number | string
   source: string
   time: string
   tags: { label: string; variant: 'default' | 'blue' | 'green' | 'red' }[]
