@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TICKERS } from '@/lib/data'
 import { Pill } from '@/components/ui'
 
@@ -11,6 +11,10 @@ interface SearchPageProps {
 
 export default function SearchPage({ onTickerNav, initialQuery = '' }: SearchPageProps) {
   const [query, setQuery] = useState(initialQuery)
+
+  useEffect(() => {
+    setQuery(initialQuery)
+  }, [initialQuery])
 
   const matches = query.length > 0
     ? Object.entries(TICKERS).filter(
