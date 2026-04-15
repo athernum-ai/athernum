@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { getFilingStats } from '@/lib/filingStats'
 import FilingSummaryViewer from '@/components/FilingSummaryViewer'
-import { Tag } from '@/components/ui'
 import type { SupabaseFilingRecord } from '@/types'
 
 interface FilingsDashboardStats {
@@ -40,20 +39,6 @@ export default function FilingsDashboardPage({ onTickerNav }: FilingsDashboardPa
 
     fetchStats()
   }, [])
-
-  const getTagVariant = (tag: string): 'default' | 'blue' | 'green' | 'red' => {
-    switch (tag) {
-      case 'Tech':
-        return 'blue'
-      case 'Finance':
-      case 'Growth':
-        return 'green'
-      case 'Risk':
-        return 'red'
-      default:
-        return 'default'
-    }
-  }
 
   if (loading) {
     return (
@@ -195,9 +180,6 @@ export default function FilingsDashboardPage({ onTickerNav }: FilingsDashboardPa
                       Date
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-mono-custom uppercase text-[var(--text3)] tracking-[1px]">
-                      Tags
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-mono-custom uppercase text-[var(--text3)] tracking-[1px]">
                       Summary
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-mono-custom uppercase text-[var(--text3)] tracking-[1px]">
@@ -221,21 +203,6 @@ export default function FilingsDashboardPage({ onTickerNav }: FilingsDashboardPa
                           day: 'numeric',
                           year: 'numeric',
                         })}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2 flex-wrap">
-                          {filing.tags && filing.tags.length > 0 ? (
-                            filing.tags.map((tag) => (
-                              <Tag
-                                key={tag}
-                                label={tag}
-                                variant={getTagVariant(tag)}
-                              />
-                            ))
-                          ) : (
-                            <span className="text-xs text-[var(--text3)]">—</span>
-                          )}
-                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <p className="text-sm text-[var(--text2)] line-clamp-2">

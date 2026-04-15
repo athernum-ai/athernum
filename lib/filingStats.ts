@@ -44,7 +44,7 @@ export async function getFilingStats(): Promise<FilingStats> {
     // Count today's filings
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    const todayFilings = allFilings.filter((filing) => {
+    const todayFilings = allFilings.filter((filing: SupabaseFilingRecord) => {
       const createdDate = new Date(filing.created_at || filing.last_updated || '')
       createdDate.setHours(0, 0, 0, 0)
       return createdDate.getTime() === today.getTime()
@@ -52,7 +52,7 @@ export async function getFilingStats(): Promise<FilingStats> {
 
     // Get latest companies (unique tickers ordered by last_updated)
     const tickerMap = new Map<string, { count: number; lastUpdated: string }>()
-    allFilings.forEach((filing) => {
+    allFilings.forEach((filing: SupabaseFilingRecord) => {
       const ticker = filing.ticker
       const entry = tickerMap.get(ticker)
       if (entry) {
@@ -106,7 +106,6 @@ function getMockStats(): FilingStats {
         'EPS: $1.53 (beat by $0.03)',
         'Services revenue: $24.2B (+11.3%)',
       ],
-      tags: ['Finance'],
       created_at: new Date().toISOString(),
       last_updated: new Date().toISOString(),
     },
@@ -125,7 +124,6 @@ function getMockStats(): FilingStats {
         'Free cash flow: $18.5B',
         'Operating income beat estimates by 5%',
       ],
-      tags: ['Finance', 'Tech'],
       created_at: new Date(Date.now() - 86400000).toISOString(),
       last_updated: new Date(Date.now() - 86400000).toISOString(),
     },
@@ -143,7 +141,6 @@ function getMockStats(): FilingStats {
         'Gross margin: 75% (+1000bps)',
         'Q2 guidance: >$32B',
       ],
-      tags: ['Growth', 'Risk'],
       created_at: new Date(Date.now() - 86400000).toISOString(),
       last_updated: new Date(Date.now() - 86400000).toISOString(),
     },
@@ -161,7 +158,6 @@ function getMockStats(): FilingStats {
         'AI-driven ad improvements',
         'User growth acceleration',
       ],
-      tags: ['Growth'],
       created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
       last_updated: new Date(Date.now() - 86400000 * 2).toISOString(),
     },
@@ -180,7 +176,6 @@ function getMockStats(): FilingStats {
         'Free cash flow: $3.2B',
         'Market share pressure in key regions',
       ],
-      tags: ['Finance', 'Tech'],
       created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
       last_updated: new Date(Date.now() - 86400000 * 3).toISOString(),
     },

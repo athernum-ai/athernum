@@ -12,8 +12,7 @@
  *       "level1": "...",
  *       "level2": "...",
  *       "level3": [...]
- *     },
- *     "tags": ["earnings", "growth"]
+ *     }
  *   }
  */
 
@@ -24,7 +23,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { ticker, reportType, reportDate, summary, tags } = body
+    const { ticker, reportType, reportDate, summary } = body
 
     // Validate required fields
     if (!ticker || !reportType || !reportDate) {
@@ -63,8 +62,7 @@ export async function POST(request: NextRequest) {
       ticker,
       reportType as '10-K' | '10-Q' | '8-K',
       reportDate,
-      summary as SECFilingSummary,
-      tags
+      summary as SECFilingSummary
     )
 
     if (!result.success) {
