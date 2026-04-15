@@ -29,22 +29,10 @@ async function main() {
     switch (command) {
       case 'test':
       case 'test-random': {
-        console.log('🧪 TEST MODE: Running filing import with random tags\n')
+        console.log('🧪 TEST MODE: Running filing import\n')
         const results = await importFilingsBatch({
           tickers: IMPORT_CONFIG.TICKERS,
           filingTypes: IMPORT_CONFIG.FILING_TYPES,
-          useRandomTags: true, // Force random tags for testing
-        })
-        logImportResults(results)
-        break
-      }
-
-      case 'content': {
-        console.log('📊 CONTENT MODE: Running with content-based tagging\n')
-        const results = await importFilingsBatch({
-          tickers: IMPORT_CONFIG.TICKERS,
-          filingTypes: IMPORT_CONFIG.FILING_TYPES,
-          useRandomTags: false, // Use content analysis
         })
         logImportResults(results)
         break

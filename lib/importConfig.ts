@@ -20,11 +20,6 @@ export const IMPORT_CONFIG = {
   // Which types of filings to monitor
   FILING_TYPES: ['10-K', '10-Q'] as const,
 
-  // ========== TAGGING MODE ==========
-  // When true: assigns random 1-2 tags for testing
-  // When false: uses content-based tagging (when ML model is ready)
-  USE_RANDOM_TAGS: true,
-
   // ========== LOGGING ==========
   // Enable detailed console logs during import
   VERBOSE_LOGGING: true,

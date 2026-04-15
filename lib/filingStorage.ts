@@ -19,8 +19,7 @@ async function saveFiling(
   ticker: string,
   reportType: '10-K' | '10-Q' | '8-K',
   reportDate: string,
-  summary: SECFilingSummary,
-  tags?: string[]
+  summary: SECFilingSummary
 ): Promise<SaveFilingResponse> {
   try {
     if (!ticker || !reportType || !reportDate) {
@@ -44,7 +43,6 @@ async function saveFiling(
           level1: summary.level1,
           level2: summary.level2,
           level3: summary.level3,
-          tags: tags || [],
           last_updated: new Date().toISOString(),
         },
       }
@@ -60,7 +58,6 @@ async function saveFiling(
       level1: summary.level1,
       level2: summary.level2,
       level3: summary.level3,
-      tags: tags || [],
       last_updated: now,
     }
 
@@ -138,7 +135,6 @@ async function saveFilingsBatch(
     reportType: '10-K' | '10-Q' | '8-K'
     reportDate: string
     summary: SECFilingSummary
-    tags?: string[]
   }>
 ): Promise<SaveFilingResponse[]> {
   return Promise.all(
@@ -147,8 +143,7 @@ async function saveFilingsBatch(
         filing.ticker,
         filing.reportType,
         filing.reportDate,
-        filing.summary,
-        filing.tags
+        filing.summary
       )
     )
   )

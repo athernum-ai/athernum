@@ -8,8 +8,6 @@
 import { getLatestFiling } from '@/lib/secEdgar'
 import { summarizeSECFiling } from '@/lib/secSummarizer'
 import { saveFiling } from '@/lib/filingStorage'
-import { autoAssignTags } from '@/lib/taggingService'
-import type { TagCategory } from '@/lib/taggingService'
 
 export interface ImportJobResult {
   ticker: string
@@ -17,14 +15,12 @@ export interface ImportJobResult {
   filingType?: string
   filingDate?: string
   recordId?: string
-  tags?: TagCategory[]
   error?: string
 }
 
 export interface ImportJobConfig {
   tickers: string[]
-  filingTypes?: ('10-K' | '10-Q' | '8-K')[]
-  useRandomTags?: boolean // True for testing with random tags
+  filingTypes?: ('10-K' | '10-Q')[]
 }
 
 /**
@@ -55,8 +51,7 @@ async function fetchRawFilingText(htmlUrl: string): Promise<string> {
  */
 async function importSingleFiling(
   ticker: string,
-  filingTypes: ('10-K' | '10-Q' | '8-K')[] = ['10-K', '10-Q'],
-  useRandomTags: boolean = false
+  filingTypes: ('10-K' | '10-Q')[] = ['10-K', '10-Q']
 ): Promise<ImportJobResult> {
   try {
     // Step 1: Fetch filing metadata from SEC
@@ -96,23 +91,13 @@ async function importSingleFiling(
       }
     }
 
-    // Step 4: Assign tags
-    console.log(`🏷️  Assigning tags...`)
-    const tags = autoAssignTags({
-      rawText: summaryResult.summary.original.substring(0, 5000), // Use first 5000 chars for analysis
-      level1: summaryResult.summary.level1,
-      level2: summaryResult.summary.level2,
-      useRandom: useRandomTags,
-    })
-
-    // Step 5: Save to Supabase
+    // Step 4: Save to Supabase
     console.log(`💾 Saving to database...`)
     const saveResult = await saveFiling(
       ticker,
       filing.filingType as '10-K' | '10-Q' | '8-K',
       filing.reportDate,
-      summaryResult.summary,
-      tags
+      summaryResult.summary
     )
 
     if (!saveResult.success) {
@@ -133,7 +118,6 @@ async function importSingleFiling(
       filingType: filing.filingType,
       filingDate: filing.reportDate,
       recordId: saveResult.data?.id,
-      tags,
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
@@ -150,14 +134,13 @@ async function importSingleFiling(
  */
 async function importFilingsBatch(config: ImportJobConfig): Promise<ImportJobResult[]> {
   const filingTypes = config.filingTypes || ['10-K', '10-Q']
-  const useRandomTags = config.useRandomTags ?? false
 
   console.log(
-    `\n🚀 Starting filing import job (${config.tickers.length} tickers, random tags: ${useRandomTags})\n`
+    `\n🚀 Starting filing import job (${config.tickers.length} tickers)\n`
   )
 
   const results = await Promise.all(
-    config.tickers.map((ticker) => importSingleFiling(ticker, filingTypes, useRandomTags))
+    config.tickers.map((ticker) => importSingleFiling(ticker, filingTypes))
   )
 
   return results
@@ -176,7 +159,7 @@ function logImportResults(results: ImportJobResult[]): void {
 
   console.log(`✅ Successful: ${successful.length}`)
   successful.forEach((result) => {
-    console.log(`   ${result.ticker} (${result.filingType}) - Tags: ${result.tags?.join(', ')}`)
+    console.log(`   ${result.ticker} (${result.filingType})`)
   })
 
   if (failed.length > 0) {

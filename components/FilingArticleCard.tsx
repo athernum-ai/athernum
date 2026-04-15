@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import type { SupabaseFilingRecord } from '@/types'
-import { Tag } from '@/components/ui'
 import FilingSummaryViewer from '@/components/FilingSummaryViewer'
 
 interface FilingArticleCardProps {
@@ -24,19 +23,12 @@ export default function FilingArticleCard({ filing, onNavigateTicker }: FilingAr
     <>
       <div className="flex gap-4 bg-[var(--bg2)] border border-[var(--border)] rounded-[10px] p-4 mb-2.5 hover:border-[var(--border2)] transition-colors">
         <div className="flex-1">
-          {/* Header: Source, Time, Tags */}
+          {/* Header: Source and Time */}
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="text-[10px] text-[var(--text3)] font-mono-custom uppercase tracking-[1px]">
               SEC Filing
             </span>
             <span className="text-[10px] text-[var(--text3)] font-mono-custom">{timeAgo}</span>
-            {filing.tags && filing.tags.map((tag) => (
-              <Tag
-                key={tag}
-                label={tag}
-                variant={tag === 'Tech' ? 'blue' : tag === 'Finance' || tag === 'Growth' ? 'green' : 'red'}
-              />
-            ))}
           </div>
 
           {/* Title */}

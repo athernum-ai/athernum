@@ -83,7 +83,6 @@ export interface SupabaseFilingRecord {
   level1: string // 1-sentence summary
   level2: string // 1-paragraph summary
   level3: string[] // Bullet points
-  tags?: string[] // Optional tags for filtering
   last_updated?: string // ISO timestamp
   created_at?: string // Auto-generated
   updated_at?: string // Auto-generated
@@ -96,20 +95,16 @@ export interface SaveFilingResponse {
 }
 
 // Import Job Types
-export type TagCategory = 'Tech' | 'Finance' | 'Growth' | 'Risk'
-
 export interface ImportJobResult {
   ticker: string
   success: boolean
   filingType?: string
   filingDate?: string
   recordId?: string
-  tags?: TagCategory[]
   error?: string
 }
 
 export interface ImportJobConfig {
   tickers: string[]
-  filingTypes?: ('10-K' | '10-Q' | '8-K')[]
-  useRandomTags?: boolean
+  filingTypes?: ('10-K' | '10-Q')[]
 }

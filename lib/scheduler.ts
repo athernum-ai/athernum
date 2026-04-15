@@ -55,8 +55,7 @@ async function runImportJob(): Promise<void> {
     try {
       const results = await importFilingsBatch({
         tickers: IMPORT_CONFIG.TICKERS,
-        filingTypes: IMPORT_CONFIG.FILING_TYPES,
-        useRandomTags: IMPORT_CONFIG.USE_RANDOM_TAGS,
+        filingTypes: [...IMPORT_CONFIG.FILING_TYPES],
       })
 
       logImportResults(results)
@@ -88,7 +87,6 @@ function startScheduler(): void {
   console.log(`Cron Expression: ${cronExpression}`)
   console.log(`Monitoring Tickers: ${IMPORT_CONFIG.TICKERS.join(', ')}`)
   console.log(`Filing Types: ${IMPORT_CONFIG.FILING_TYPES.join(', ')}`)
-  console.log(`Random Tags: ${IMPORT_CONFIG.USE_RANDOM_TAGS}`)
   console.log(`${'='.repeat(60)}\n`)
 
   // Schedule the job
@@ -105,7 +103,6 @@ function startScheduler(): void {
 function stopScheduler(): void {
   if (scheduler) {
     scheduler.stop()
-    scheduler.destroy()
     scheduler = null
     console.log('⛔ Filing import scheduler stopped')
   }
@@ -115,7 +112,7 @@ function stopScheduler(): void {
  * Check if scheduler is running
  */
 function isSchedulerRunning(): boolean {
-  return scheduler !== null && scheduler._destroyed === false
+  return scheduler !== null
 }
 
 /**
@@ -144,7 +141,6 @@ function getSchedulerStatus(): object {
     interval: `${IMPORT_CONFIG.INTERVAL_MINUTES} minutes (${getIntervalInfo()})`,
     tickers: IMPORT_CONFIG.TICKERS,
     filingTypes: IMPORT_CONFIG.FILING_TYPES,
-    randomTags: IMPORT_CONFIG.USE_RANDOM_TAGS,
     approximateNextRun: getNextRunTime(),
   }
 }
