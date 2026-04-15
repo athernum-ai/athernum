@@ -53,10 +53,7 @@ async function getLatestFiling(
   try {
     const cik = await getTickerToCIK(ticker)
 
-    // Use SEC EDGAR REST API endpoint for company filings
-    const submissionsUrl = `https://www.sec.gov/cgi-bin/viewer?action=view&cik=${cik.replace(/^0+/, '')}&type=${filingTypes[0]}&dateb=&owner=exclude&count=10&output=json`
-    
-    // Alternative: Use the Company Facts API
+    // Use data.sec.gov API endpoint
     const companyfactsUrl = `https://data.sec.gov/api/xbrl/companyfacts/CIK${cik.replace(/^0+/, '')}.json`
     
     let submissionsResponse = await fetch(companyfactsUrl)
@@ -69,8 +66,8 @@ async function getLatestFiling(
         filingDate: new Date().toISOString().split('T')[0],
         reportDate: new Date().toISOString().split('T')[0],
         filingType: '10-K',
-        documentUrl: `https://www.sec.gov/cgi-bin/viewer?action=view&cik=${cik}&type=${filingTypes[0]}&dateb=&owner=exclude&count=1`,
-        htmlUrl: `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${cik}&type=${filingTypes[0]}&dateb=&owner=exclude&count=1`,
+        documentUrl: `https://data.sec.gov/api/xbrl/companyfacts/CIK${cik}.json`,
+        htmlUrl: `https://data.sec.gov/api/xbrl/companyfacts/CIK${cik}.json`,
         ticker: ticker.toUpperCase(),
       }
 
