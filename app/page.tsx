@@ -10,6 +10,7 @@ import TickerDetailPage  from '@/components/pages/TickerDetailPage'
 import SearchPage        from '@/components/pages/SearchPage'
 import EventsPage        from '@/components/pages/EventsPage'
 import SettingsPage      from '@/components/pages/SettingsPage'
+import FilingsDashboardPage from '@/components/pages/FilingsDashboardPage'
 
 export default function Home() {
   const [isMounted, setIsMounted] = useState(false)
@@ -70,6 +71,10 @@ export default function Home() {
 
         <div style={{ display: activePage === 'settings' ? 'block' : 'none' }}>
           <SettingsPage />
+        </div>
+
+        <div style={{ display: activePage === 'filings-dashboard' ? 'block' : 'none' }}>
+          <FilingsDashboardPage onTickerNav={handleTickerNav} />
         </div>
       </main>
     </div>
