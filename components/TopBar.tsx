@@ -2,13 +2,16 @@
 
 import { useState } from 'react'
 import type { PageId } from '@/types'
+import type { Theme } from '@/lib/useTheme'
 
 interface TopBarProps {
   onNav: (page: PageId) => void
   onSearch: (query: string) => void
+  theme: Theme
+  onToggleTheme: () => void
 }
 
-export default function TopBar({ onNav, onSearch }: TopBarProps) {
+export default function TopBar({ onNav, onSearch, theme, onToggleTheme }: TopBarProps) {
   const [filterActive, setFilterActive] = useState(false)
   const [query, setQuery] = useState('')
 
@@ -45,6 +48,12 @@ export default function TopBar({ onNav, onSearch }: TopBarProps) {
           ].join(' ')}
         >
           Filter
+        </button>
+        <button
+          onClick={onToggleTheme}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 border border-[var(--border)] rounded-md text-[13px] text-[var(--text2)] hover:border-[var(--border2)] hover:text-[var(--text)] hover:bg-[var(--bg3)] transition-all"
+        >
+          {theme === 'dark' ? '☀' : '☾'}
         </button>
         <button
           onClick={() => onNav('settings')}

@@ -9,7 +9,8 @@ import {
   Tooltip,
 } from 'recharts'
 import { Pill, ArticleCard } from '@/components/ui'
-import { TICKERS, SUMMARIES, genChartData, BASE_PRICES, RANGE_CONFIG } from '@/lib/data'
+import { SUMMARIES, genChartData, BASE_PRICES, RANGE_CONFIG } from '@/lib/data'
+import type { TickerMap } from '@/types'
 
 const RANGES = ['1D', '1W', '1M', '3M', '1Y'] as const
 type Range = (typeof RANGES)[number]
@@ -32,6 +33,10 @@ const RELATED_ARTICLES = [
 interface TickerDetailPageProps {
   ticker: string
   onBack: () => void
+  tickers: TickerMap
+  watchlist: string[]
+  addToWatchlist: (symbol: string) => Promise<void>
+  removeFromWatchlist: (symbol: string) => Promise<void>
 }
 
 const badgeColors = {
@@ -40,18 +45,36 @@ const badgeColors = {
   detailed: 'bg-[#8b5cf615] text-[#8b5cf6]',
 }
 
-export default function TickerDetailPage({ ticker, onBack }: TickerDetailPageProps) {
+export default function TickerDetailPage({ ticker, onBack, tickers, watchlist, addToWatchlist, removeFromWatchlist }: TickerDetailPageProps) {
   const [range, setRange] = useState<Range>('1W')
   const [level, setLevel] = useState(0)
 
-  const t = TICKERS[ticker] ?? TICKERS['AAPL']
   const cfg = RANGE_CONFIG[range]
   const base = BASE_PRICES[ticker] ?? 180
+  const inWatchlist = watchlist.includes(ticker)
 
   const chartData = useMemo(() => {
     const values = genChartData(cfg.n, base - cfg.n * cfg.trend, cfg.vol, cfg.trend)
     return values.map((v, i) => ({ i, value: v }))
   }, [range, ticker])
+
+  const t = tickers[ticker]
+  if (!t) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center gap-1.5 text-[12px] text-[var(--text3)] font-mono-custom mb-4">
+          <button onClick={onBack} className="hover:text-[var(--accent)] transition-colors">
+            Feed
+          </button>
+          <span className="text-[var(--border2)]">›</span>
+          <span className="text-[var(--text2)]">{ticker}</span>
+        </div>
+        <div className="bg-[var(--bg2)] border border-[var(--border)] rounded-[10px] p-5 text-[var(--text)]">
+          Ticker not found.
+        </div>
+      </div>
+    )
+  }
 
   const isUp = t.dir === 'up'
   const chartColor = isUp ? '#10b981' : '#ef4444'
@@ -82,7 +105,18 @@ export default function TickerDetailPage({ ticker, onBack }: TickerDetailPagePro
               <Pill dir={t.dir} text={`${t.chg} today`} />
             </div>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-2 items-start">
+            <button
+              onClick={() => (inWatchlist ? removeFromWatchlist(ticker) : addToWatchlist(ticker))}
+              className={[
+                'px-3 py-1.5 rounded-md border text-[12px] font-mono-custom transition-all',
+                inWatchlist
+                  ? 'border-[var(--border2)] text-[var(--text2)] hover:text-[var(--text)] hover:bg-[var(--bg3)]'
+                  : 'border-[var(--accent)] text-[var(--accent)] bg-[#3b82f615] hover:bg-[#3b82f625]',
+              ].join(' ')}
+            >
+              {inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+            </button>
             {RANGES.map((r) => (
               <button
                 key={r}

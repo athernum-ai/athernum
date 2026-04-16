@@ -1,24 +1,17 @@
-/**
- * Supabase Client Configuration
- * 
- * Initializes the Supabase client for database operations.
- * Configure with your Supabase URL and anon key from environment variables.
- */
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-import { createClient } from '@supabase/supabase-js'
+let browserClient: SupabaseClient | null = null
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+export function getSupabaseClient(): SupabaseClient | null {
+  if (browserClient) return browserClient
 
-let supabase: any = null
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-if (supabaseUrl && supabaseAnonKey) {
-  supabase = createClient(supabaseUrl, supabaseAnonKey)
-} else {
-  console.warn(
-    '⚠️  Supabase not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to enable database storage.'
-  )
+  if (!url || !anon) return null
+
+  browserClient = createClient(url, anon)
+  return browserClient
 }
 
-export { supabase }
-
+export const supabase = getSupabaseClient()

@@ -48,7 +48,7 @@ async function getTickerToCIK(ticker: string): Promise<string> {
  */
 async function getLatestFiling(
   ticker: string,
-  filingTypes: ('10-K' | '10-Q')[] = ['10-K', '10-Q']
+  filingTypes: readonly ('10-K' | '10-Q')[] = ['10-K', '10-Q']
 ): Promise<SECFilingResponse> {
   try {
     const cik = await getTickerToCIK(ticker)
@@ -135,7 +135,7 @@ async function getLatestFiling(
  */
 async function getLatestFilingsBatch(
   tickers: string[],
-  filingTypes?: ('10-K' | '10-Q')[]
+  filingTypes?: readonly ('10-K' | '10-Q')[]
 ): Promise<SECFilingResponse[]> {
   return Promise.all(tickers.map(ticker => getLatestFiling(ticker, filingTypes)))
 }

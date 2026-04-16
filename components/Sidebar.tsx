@@ -1,13 +1,15 @@
 'use client'
 
-import type { PageId, TickerData } from '@/types'
-import { TICKERS, WATCHLIST, MARKET_BAR } from '@/lib/data'
+import type { PageId, TickerData, TickerMap } from '@/types'
+import { MARKET_BAR } from '@/lib/data'
 
 interface SidebarProps {
   activePage: PageId
   onNav: (page: PageId) => void
   onTickerNav: (ticker: string) => void
   currentTicker: string
+  tickers: TickerMap
+  watchlist: string[]
 }
 
 const NavItem = ({
@@ -45,7 +47,7 @@ const TickerPill = ({ dir, chg }: { dir: TickerData['dir']; chg: string }) => (
   </span>
 )
 
-export default function Sidebar({ activePage, onNav, onTickerNav, currentTicker }: SidebarProps) {
+export default function Sidebar({ activePage, onNav, onTickerNav, currentTicker, tickers, watchlist }: SidebarProps) {
   return (
     <aside className="flex flex-col h-screen sticky top-0 bg-[var(--bg2)] border-r border-[var(--border)] overflow-hidden" style={{ width: 220 }}>
       {/* Logo */}
@@ -85,8 +87,9 @@ export default function Sidebar({ activePage, onNav, onTickerNav, currentTicker 
           <div className="text-[10px] text-[var(--text3)] font-mono-custom tracking-[2px] uppercase px-3 mb-1.5">
             Watchlist
           </div>
-          {WATCHLIST.map((sym) => {
-            const t = TICKERS[sym]
+          {watchlist.map((sym) => {
+            const t = tickers[sym]
+            if (!t) return null
             return (
               <NavItem
                 key={sym}

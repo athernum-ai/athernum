@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import type { PageId } from '@/types'
+import { useSupabaseData } from '@/lib/useSupabaseData'
+import { useTheme } from '@/lib/useTheme'
 
 import Sidebar           from '@/components/Sidebar'
 import TopBar            from '@/components/TopBar'
@@ -18,6 +20,8 @@ export default function Home() {
   const [activePage, setActivePage]     = useState<PageId>('feed')
   const [currentTicker, setCurrentTicker] = useState('AAPL')
   const [searchQuery, setSearchQuery]   = useState('')
+  const { tickers, watchlist, articles, addToWatchlist, removeFromWatchlist, refreshData } = useSupabaseData()
+  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     setIsMounted(true)
@@ -48,21 +52,30 @@ export default function Home() {
         onNav={handleNav}
         onTickerNav={handleTickerNav}
         currentTicker={currentTicker}
+        tickers={tickers}
+        watchlist={watchlist}
       />
 
       <main className="bg-[var(--bg)] overflow-y-auto">
-        <TopBar onNav={handleNav} onSearch={handleSearch} />
+        <TopBar onNav={handleNav} onSearch={handleSearch} theme={theme} onToggleTheme={toggleTheme} />
 
         <div style={{ display: activePage === 'feed'     ? 'block' : 'none' }}>
-          <FeedPage onTickerNav={handleTickerNav} />
+          <FeedPage onTickerNav={handleTickerNav} tickers={tickers} watchlist={watchlist} articles={articles} />
         </div>
 
         <div style={{ display: activePage === 'ticker'   ? 'block' : 'none' }}>
-          <TickerDetailPage ticker={currentTicker} onBack={() => handleNav('feed')} />
+          <TickerDetailPage
+            ticker={currentTicker}
+            onBack={() => handleNav('feed')}
+            tickers={tickers}
+            watchlist={watchlist}
+            addToWatchlist={addToWatchlist}
+            removeFromWatchlist={removeFromWatchlist}
+          />
         </div>
 
         <div style={{ display: activePage === 'search'   ? 'block' : 'none' }}>
-          <SearchPage onTickerNav={handleTickerNav} initialQuery={searchQuery} />
+          <SearchPage onTickerNav={handleTickerNav} initialQuery={searchQuery} tickers={tickers} refreshData={refreshData} />
         </div>
 
         <div style={{ display: activePage === 'events'   ? 'block' : 'none' }}>
@@ -70,7 +83,7 @@ export default function Home() {
         </div>
 
         <div style={{ display: activePage === 'settings' ? 'block' : 'none' }}>
-          <SettingsPage />
+          <SettingsPage theme={theme} onToggleTheme={toggleTheme} />
         </div>
 
         <div style={{ display: activePage === 'filings-dashboard' ? 'block' : 'none' }}>

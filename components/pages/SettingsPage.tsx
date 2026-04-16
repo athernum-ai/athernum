@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import type { Theme } from '@/lib/useTheme'
 
 function Toggle({ defaultOn = false }: { defaultOn?: boolean }) {
   const [on, setOn] = useState(defaultOn)
@@ -61,7 +62,12 @@ const SelectBox = ({ options }: { options: string[] }) => (
   </select>
 )
 
-export default function SettingsPage() {
+interface SettingsPageProps {
+  theme: Theme
+  onToggleTheme: () => void
+}
+
+export default function SettingsPage({ theme, onToggleTheme }: SettingsPageProps) {
   return (
     <div className="p-6">
       <div className="flex items-baseline gap-3 mb-5">
@@ -69,7 +75,23 @@ export default function SettingsPage() {
       </div>
 
       <Section title="Display">
-        <SettingsRow label="Dark Mode"          desc="Use dark theme across the app"              control={<Toggle defaultOn />} />
+        <SettingsRow
+          label="Dark Mode"
+          desc="Use dark theme across the app"
+          control={
+            <button
+              onClick={onToggleTheme}
+              className={[
+                'px-3 py-1.5 rounded-md text-[12px] font-mono-custom border transition-colors',
+                theme === 'dark'
+                  ? 'bg-[var(--accent)]/10 border-[var(--accent)]/30 text-[var(--accent)]'
+                  : 'bg-[var(--bg3)] border-[var(--border)] text-[var(--text2)]',
+              ].join(' ')}
+            >
+              {theme === 'dark' ? 'Dark' : 'Light'}
+            </button>
+          }
+        />
         <SettingsRow label="Compact Feed"       desc="Show more articles with less spacing"       control={<Toggle />} />
         <SettingsRow label="Show Premarket Data" desc="Display premarket price changes in watchlist" control={<Toggle defaultOn />} />
       </Section>

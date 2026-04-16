@@ -158,6 +158,13 @@ async function getFiling(
   reportDate?: string
 ): Promise<SaveFilingResponse> {
   try {
+    if (!supabase) {
+      return {
+        success: false,
+        error: 'Supabase not configured',
+      }
+    }
+
     let query = supabase
       .from(TABLE_NAME)
       .select('*')
@@ -205,6 +212,13 @@ async function getFiling(
  */
 async function getFilingsByTicker(ticker: string): Promise<SaveFilingResponse> {
   try {
+    if (!supabase) {
+      return {
+        success: false,
+        error: 'Supabase not configured',
+      }
+    }
+
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .select('*')
@@ -243,6 +257,13 @@ async function getFilingsByTicker(ticker: string): Promise<SaveFilingResponse> {
  */
 async function deleteFiling(id: string): Promise<SaveFilingResponse> {
   try {
+    if (!supabase) {
+      return {
+        success: false,
+        error: 'Supabase not configured',
+      }
+    }
+
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .delete()
@@ -275,6 +296,13 @@ async function deleteFiling(id: string): Promise<SaveFilingResponse> {
  */
 async function searchFilingsByTag(tag: string): Promise<SaveFilingResponse> {
   try {
+    if (!supabase) {
+      return {
+        success: false,
+        error: 'Supabase not configured',
+      }
+    }
+
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .select('*')

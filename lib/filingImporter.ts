@@ -20,7 +20,7 @@ export interface ImportJobResult {
 
 export interface ImportJobConfig {
   tickers: string[]
-  filingTypes?: ('10-K' | '10-Q')[]
+  filingTypes?: readonly ('10-K' | '10-Q')[]
 }
 
 /**
@@ -51,7 +51,7 @@ async function fetchRawFilingText(htmlUrl: string): Promise<string> {
  */
 async function importSingleFiling(
   ticker: string,
-  filingTypes: ('10-K' | '10-Q')[] = ['10-K', '10-Q']
+  filingTypes: readonly ('10-K' | '10-Q')[] = ['10-K', '10-Q']
 ): Promise<ImportJobResult> {
   try {
     // Step 1: Fetch filing metadata from SEC
