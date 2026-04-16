@@ -77,6 +77,9 @@ export default function Sidebar({ activePage, onNav, onTickerNav, currentTicker,
           <NavItem active={activePage === 'events'} onClick={() => onNav('events')}>
             <span>📅</span> Event Tracker
           </NavItem>
+          <NavItem active={activePage === 'filings-dashboard'} onClick={() => onNav('filings-dashboard')}>
+            <span>📊</span> Filings Dashboard
+          </NavItem>
         </div>
 
         {/* Watchlist */}

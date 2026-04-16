@@ -2,7 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 let browserClient: SupabaseClient | null = null
 
-export function getSupabaseClient() {
+export function getSupabaseClient(): SupabaseClient | null {
   if (browserClient) return browserClient
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -13,3 +13,5 @@ export function getSupabaseClient() {
   browserClient = createClient(url, anon)
   return browserClient
 }
+
+export const supabase = getSupabaseClient()

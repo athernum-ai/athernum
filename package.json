@@ -6,22 +6,33 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "import:test": "tsx scripts/import.ts test",
+    "import:content": "tsx scripts/import.ts content",
+    "import:run": "tsx scripts/import.ts now",
+    "import:start": "tsx scripts/import.ts start",
+    "import:stop": "tsx scripts/import.ts stop",
+    "import:status": "tsx scripts/import.ts status",
+    "import:config": "tsx scripts/import.ts config",
+    "import:help": "tsx scripts/import.ts help"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.0",
     "next": "15.1.0",
+    "node-cron": "^3.0.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "recharts": "^2.13.0"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/node-cron": "^3.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.0.1",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.7.0",
     "typescript": "^5"
   }
 }
