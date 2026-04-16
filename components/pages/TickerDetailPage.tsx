@@ -35,6 +35,8 @@ interface TickerDetailPageProps {
   onBack: () => void
   tickers: TickerMap
   watchlist: string[]
+  watchlistMessage?: string | null
+  isAuthenticated?: boolean
   addToWatchlist: (symbol: string) => Promise<void>
   removeFromWatchlist: (symbol: string) => Promise<void>
 }
@@ -45,7 +47,16 @@ const badgeColors = {
   detailed: 'bg-[#8b5cf615] text-[#8b5cf6]',
 }
 
-export default function TickerDetailPage({ ticker, onBack, tickers, watchlist, addToWatchlist, removeFromWatchlist }: TickerDetailPageProps) {
+export default function TickerDetailPage({
+  ticker,
+  onBack,
+  tickers,
+  watchlist,
+  watchlistMessage,
+  isAuthenticated = false,
+  addToWatchlist,
+  removeFromWatchlist,
+}: TickerDetailPageProps) {
   const [range, setRange] = useState<Range>('1W')
   const [level, setLevel] = useState(0)
 
@@ -115,7 +126,7 @@ export default function TickerDetailPage({ ticker, onBack, tickers, watchlist, a
                   : 'border-[var(--accent)] text-[var(--accent)] bg-[#3b82f615] hover:bg-[#3b82f625]',
               ].join(' ')}
             >
-              {inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+              {inWatchlist ? 'Remove from Watchlist' : isAuthenticated ? 'Add to Watchlist' : 'Sign In to Save'}
             </button>
             {RANGES.map((r) => (
               <button
@@ -133,6 +144,12 @@ export default function TickerDetailPage({ ticker, onBack, tickers, watchlist, a
             ))}
           </div>
         </div>
+
+        {watchlistMessage && (
+          <div className="mt-3 text-[12px] text-[var(--text3)] font-mono-custom">
+            {watchlistMessage}
+          </div>
+        )}
 
         {/* Recharts Area Chart */}
         <div style={{ height: 200 }}>
