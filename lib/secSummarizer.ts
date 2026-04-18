@@ -20,12 +20,95 @@ function extractKeywords(text: string): string[] {
   return keywords
 }
 
+const OLLAMA_HOST = process.envOLLAMA_HOST!
+
+// Ollama API call to MS Azure host
+async function callOllama(prompt: string): Promise<string> {
+  const res = await fetch(`${OLLAMA_HOST}/api/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'llama3.2',
+      stream: false,
+      message: [
+        {
+          role: 'system',
+          content:
+            'You are a financial analyst specializing in summarizing SEC filings (Forms 10-K and 10-Q). Structure your output in a concise and easy to understand manner.',
+        },
+        {
+          role: 'user'
+          content: prompt,
+        },
+       ],
+   }),
+ })
+
+if (!res.ok) { throw new Error(`Ollama API error: $(await res.text()}` }
+
+const data = await res.json()
+
+return data.message?.content ?? data.response ?? ''
+}
+
+
+// Level 1 summary
+export async function generateLevel1Summary(text: string): Promise<string> {
+  return callOllama(`
+Summarize this SEC filing in four sentences maximum. Focus on reporting company performance.
+
+TEXT:
+${text.slice(0, 6000)}
+`)
+}
+
+// Level 2 summary
+export async function generateLevel2Summary(text: string): Promise<string> {
+  return callOllama(`
+Summarize this SEC filing in six sentences. Focus on reporting company performance.
+
+TEXT:
+${text.slice(0, 9000)}
+`)
+}
+
+// Level 3 summary
+export async function generateLevel2Summary(text: string): Promise<string> {
+  return callOllama(`
+Summarize this SEC filing in ten sentences. Focus on reporting company performance.
+
+TEXT:
+${text.slice(0, 12000)}
+`)
+}
+
+// Summary pipeline
+export async function generateSummary(
+  rawText: string
+): Promise<SECFilingSummary> {
+  if (!rawText?.trim()) {
+    return {
+      original: '',
+      level1: 'No content',
+      level2: 'No content',
+      level3: 'No content",
+    }
+  }
+
+const [l1, l2, l3] = await Promise.all([
+  generateLevel1Summary(rawText),
+  generateLevel2Summary(rawText),
+  generateLevel3Summary(rawText),
+])
+
 /**
  * Generate a fake 1-sentence summary (Level 1)
  * 
  * Current implementation returns a placeholder.
  * To integrate real AI summarization, replace with API call to your model.
- */
+ 
 function generateLevel1Summary(text: string): string {
   // Mock implementation - detect key topics
   const wordCount = text.split(/\s+/).length
@@ -46,14 +129,15 @@ function generateLevel1Summary(text: string): string {
   }
 
   return summary
-}
+}*/
+
 
 /**
  * Generate a fake 1-paragraph summary (Level 2)
  * 
  * Current implementation returns a placeholder.
  * To integrate real AI summarization, replace with API call to your model.
- */
+ 
 function generateLevel2Summary(text: string): string {
   const hasRevenue = text.toLowerCase().includes('revenue')
   const hasEarnings = text.toLowerCase().includes('earnings') || text.toLowerCase().includes('net income')
@@ -79,13 +163,14 @@ function generateLevel2Summary(text: string): string {
 
   return paragraph
 }
+*/
 
 /**
  * Generate a fake bulleted list summary (Level 3)
  * 
  * Current implementation returns placeholder bullets.
  * To integrate real AI summarization, replace with API call to your model.
- */
+ 
 function generateLevel3Summary(text: string): string[] {
   const bullets: string[] = []
 
@@ -126,13 +211,14 @@ function generateLevel3Summary(text: string): string[] {
 
   return bullets.slice(0, 8) // Limit to 8 bullets
 }
+*/
 
 /**
  * Generate multi-level summary from raw SEC filing text
  * 
  * @param rawText - Raw SEC filing text
  * @returns SECFilingSummary with 4 levels
- */
+ 
 function generateSummary(rawText: string): SECFilingSummary {
   if (!rawText || rawText.trim().length === 0) {
     return {
@@ -150,10 +236,11 @@ function generateSummary(rawText: string): SECFilingSummary {
     level3: generateLevel3Summary(rawText),
   }
 }
+*/
 
 /**
  * Process SEC filing text and return structured summaries
- */
+ 
 function summarizeSECFiling(rawText: string): SECSummaryResponse {
   try {
     if (!rawText || typeof rawText !== 'string') {
@@ -180,7 +267,7 @@ function summarizeSECFiling(rawText: string): SECSummaryResponse {
 
 /**
  * Batch summarize multiple SEC filings
- */
+ 
 function summarizeSECFilingsBatch(texts: string[]): SECSummaryResponse[] {
   return texts.map((text) => summarizeSECFiling(text))
 }
@@ -193,3 +280,4 @@ export {
   generateLevel2Summary,
   generateLevel3Summary,
 }
+*/
