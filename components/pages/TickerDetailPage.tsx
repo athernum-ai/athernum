@@ -9,6 +9,7 @@ import {
   Tooltip,
 } from 'recharts'
 import { Pill, ArticleCard } from '@/components/ui'
+import { useAuthModal } from '@/lib/useAuthModal'
 import { SUMMARIES, genChartData, BASE_PRICES, RANGE_CONFIG } from '@/lib/data'
 import type { TickerMap } from '@/types'
 
@@ -36,7 +37,7 @@ interface TickerDetailPageProps {
   tickers: TickerMap
   watchlist: string[]
   watchlistMessage?: string | null
-  isAuthenticated?: boolean
+  isAuthenticated: boolean
   addToWatchlist: (symbol: string) => Promise<void>
   removeFromWatchlist: (symbol: string) => Promise<void>
 }
@@ -53,10 +54,11 @@ export default function TickerDetailPage({
   tickers,
   watchlist,
   watchlistMessage,
-  isAuthenticated = false,
+  isAuthenticated,
   addToWatchlist,
   removeFromWatchlist,
 }: TickerDetailPageProps) {
+  const { openAuthModal } = useAuthModal()
   const [range, setRange] = useState<Range>('1W')
   const [level, setLevel] = useState(0)
 
@@ -74,9 +76,7 @@ export default function TickerDetailPage({
     return (
       <div className="p-6">
         <div className="flex items-center gap-1.5 text-[12px] text-[var(--text3)] font-mono-custom mb-4">
-          <button onClick={onBack} className="hover:text-[var(--accent)] transition-colors">
-            Feed
-          </button>
+          <button onClick={onBack} className="hover:text-[var(--accent)] transition-colors">Feed</button>
           <span className="text-[var(--border2)]">›</span>
           <span className="text-[var(--text2)]">{ticker}</span>
         </div>
@@ -91,13 +91,35 @@ export default function TickerDetailPage({
   const chartColor = isUp ? '#10b981' : '#ef4444'
   const summary = SUMMARIES[level]
 
+  const handleWatchlistClick = () => {
+    if (!isAuthenticated) {
+      openAuthModal(`Sign in to add ${ticker} to your watchlist and track it in your personalised feed.`)
+    } else if (inWatchlist) {
+      removeFromWatchlist(ticker)
+    } else {
+      addToWatchlist(ticker)
+    }
+  }
+
+  const handleSummaryLevel = (i: number) => {
+    if (!isAuthenticated) {
+      openAuthModal('Sign in to access Brief, Standard, and Detailed AI summaries for any ticker.')
+      return
+    }
+    setLevel(i)
+  }
+
+  const handleArticleClick = () => {
+    if (!isAuthenticated) {
+      openAuthModal('Sign in to read full articles and access AI-generated summaries.')
+    }
+  }
+
   return (
     <div className="p-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-[12px] text-[var(--text3)] font-mono-custom mb-4">
-        <button onClick={onBack} className="hover:text-[var(--accent)] transition-colors">
-          Feed
-        </button>
+        <button onClick={onBack} className="hover:text-[var(--accent)] transition-colors">Feed</button>
         <span className="text-[var(--border2)]">›</span>
         <span className="text-[var(--text2)]">{ticker}</span>
       </div>
@@ -110,15 +132,13 @@ export default function TickerDetailPage({
               {t.name} — {ticker}
             </div>
             <div className="flex items-baseline gap-3 mt-1">
-              <span className="font-mono-custom text-[22px] font-medium text-[var(--text)]">
-                {t.price}
-              </span>
+              <span className="font-mono-custom text-[22px] font-medium text-[var(--text)]">{t.price}</span>
               <Pill dir={t.dir} text={`${t.chg} today`} />
             </div>
           </div>
           <div className="flex gap-2 items-start">
             <button
-              onClick={() => (inWatchlist ? removeFromWatchlist(ticker) : addToWatchlist(ticker))}
+              onClick={handleWatchlistClick}
               className={[
                 'px-3 py-1.5 rounded-md border text-[12px] font-mono-custom transition-all',
                 inWatchlist
@@ -146,12 +166,9 @@ export default function TickerDetailPage({
         </div>
 
         {watchlistMessage && (
-          <div className="mt-3 text-[12px] text-[var(--text3)] font-mono-custom">
-            {watchlistMessage}
-          </div>
+          <div className="mt-3 text-[12px] text-[var(--text3)] font-mono-custom">{watchlistMessage}</div>
         )}
 
-        {/* Recharts Area Chart */}
         <div style={{ height: 200 }}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
@@ -204,9 +221,7 @@ export default function TickerDetailPage({
           { label: 'Mkt Cap',  value: t.cap  },
         ].map(({ label, value }) => (
           <div key={label} className="bg-[var(--bg2)] border border-[var(--border)] rounded-lg px-3.5 py-3">
-            <div className="text-[10px] text-[var(--text3)] font-mono-custom uppercase tracking-[1px] mb-1">
-              {label}
-            </div>
+            <div className="text-[10px] text-[var(--text3)] font-mono-custom uppercase tracking-[1px] mb-1">{label}</div>
             <div className="text-[20px] font-medium font-mono-custom text-[var(--text)]">{value}</div>
           </div>
         ))}
@@ -222,10 +237,10 @@ export default function TickerDetailPage({
         {SUMMARIES.map((s, i) => (
           <button
             key={s.badge}
-            onClick={() => setLevel(i)}
+            onClick={() => handleSummaryLevel(i)}
             className={[
               'px-3.5 py-1.5 rounded-md border text-[12px] font-mono-custom transition-all capitalize',
-              level === i
+              level === i && isAuthenticated
                 ? 'bg-[#3b82f615] border-[var(--accent)] text-[var(--accent)]'
                 : 'bg-[var(--bg3)] border-[var(--border)] text-[var(--text2)] hover:border-[var(--border2)] hover:text-[var(--text)]',
             ].join(' ')}
@@ -236,22 +251,29 @@ export default function TickerDetailPage({
       </div>
 
       {/* Summary Box */}
-      <div className="bg-[var(--bg2)] border border-[var(--border)] rounded-[10px] p-5 text-[13px] text-[var(--text2)] leading-relaxed mb-5">
-        <span
-          className={`inline-block text-[10px] font-mono-custom px-2 py-0.5 rounded mb-3 ${badgeColors[summary.badge]}`}
+      {isAuthenticated ? (
+        <div className="bg-[var(--bg2)] border border-[var(--border)] rounded-[10px] p-5 text-[13px] text-[var(--text2)] leading-relaxed mb-5">
+          <span className={`inline-block text-[10px] font-mono-custom px-2 py-0.5 rounded mb-3 ${badgeColors[summary.badge]}`}>
+            {summary.label}
+          </span>
+          <br />
+          <span dangerouslySetInnerHTML={{ __html: summary.html }} />
+        </div>
+      ) : (
+        <button
+          onClick={() => openAuthModal('Sign in to access Brief, Standard, and Detailed AI summaries for any ticker.')}
+          className="w-full mb-5 bg-[var(--bg2)] border border-dashed border-[var(--border2)] rounded-[10px] py-6 text-[13px] text-[var(--text3)] hover:text-[var(--text2)] hover:border-[var(--accent)] transition-colors"
         >
-          {summary.label}
-        </span>
-        <br />
-        <span dangerouslySetInnerHTML={{ __html: summary.html }} />
-      </div>
+          Sign in to unlock AI summaries →
+        </button>
+      )}
 
       {/* Related Articles */}
       <div className="flex items-baseline gap-3 mb-3">
         <h2 className="font-serif-custom italic text-[20px] text-[var(--text)]">Related Articles</h2>
       </div>
       {RELATED_ARTICLES.map((a, i) => (
-        <ArticleCard key={i} article={a} />
+        <ArticleCard key={i} article={a} onClick={handleArticleClick} />
       ))}
     </div>
   )
