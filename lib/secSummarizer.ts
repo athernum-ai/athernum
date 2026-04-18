@@ -5,7 +5,7 @@
  * Currently uses mock/fake summaries. Ready for real ML model integration.
  */
 
-import type { SECFilingSummary, SECSummaryResponse } from '@/types'
+// import type { SECFilingSummary, SECSummaryResponse } from '@/types'
 
 /**
  * Extract key metrics or keywords from raw SEC text
@@ -18,6 +18,13 @@ function extractKeywords(text: string): string[] {
     .slice(0, 10)
 
   return keywords
+}
+
+type SECFilingSummary = {
+  original: string
+  level1: string
+  level2: string
+  level3: string
 }
 
 const OLLAMA_HOST = process.envOLLAMA_HOST!
