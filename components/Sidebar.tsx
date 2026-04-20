@@ -1,8 +1,10 @@
 'use client'
 
+import { useEffect } from 'react'
 import type { PageId, TickerData, TickerMap } from '@/types'
 import { MARKET_BAR } from '@/lib/data'
 import { useAuthModal } from '@/lib/useAuthModal'
+import type { User } from '@supabase/supabase-js'
 
 interface SidebarProps {
   activePage: PageId
@@ -11,7 +13,10 @@ interface SidebarProps {
   currentTicker: string
   tickers: TickerMap
   watchlist: string[]
+  user: User | null
+  loading: boolean
   isAuthenticated: boolean
+  onSignOut: () => Promise<{ ok: boolean; error: string | null }>
 }
 
 const NavItem = ({
@@ -46,13 +51,18 @@ const TickerPill = ({ dir, chg }: { dir: TickerData['dir']; chg: string }) => (
 )
 
 export default function Sidebar({
-  activePage, onNav, onTickerNav, currentTicker, tickers, watchlist, isAuthenticated,
+  activePage, onNav, onTickerNav, currentTicker, tickers, watchlist, user, loading, isAuthenticated, onSignOut,
 }: SidebarProps) {
   const { openAuthModal } = useAuthModal()
+  const isLoggedIn = !!user && isAuthenticated
+
+  useEffect(() => {
+    console.log('Sidebar user', user)
+  }, [user])
 
   // Wrap nav for protected pages — show modal if not signed in, navigate if signed in
   const guardedNav = (page: PageId, context: string) => {
-    if (isAuthenticated) {
+    if (isLoggedIn) {
       onNav(page)
     } else {
       openAuthModal(context)
@@ -89,21 +99,21 @@ export default function Sidebar({
             onClick={() => guardedNav('events', 'Sign in to access the Event Tracker and follow upcoming earnings, dividends, and macro events.')}
           >
             <span>📅</span> Event Tracker
-            {!isAuthenticated && <span className="ml-auto text-[10px] text-[var(--text3)] font-mono-custom">Sign in</span>}
+            {!isLoggedIn && <span className="ml-auto text-[10px] text-[var(--text3)] font-mono-custom">Sign in</span>}
           </NavItem>
           <NavItem
             active={activePage === 'filings-dashboard'}
             onClick={() => guardedNav('filings-dashboard', 'Sign in to access the Filings Dashboard and browse SEC filings with AI-generated digests.')}
           >
             <span>📊</span> Filings Dashboard
-            {!isAuthenticated && <span className="ml-auto text-[10px] text-[var(--text3)] font-mono-custom">Sign in</span>}
+            {!isLoggedIn && <span className="ml-auto text-[10px] text-[var(--text3)] font-mono-custom">Sign in</span>}
           </NavItem>
         </div>
 
         {/* Watchlist — gated entirely when logged out */}
         <div className="mb-5">
           <div className="text-[10px] text-[var(--text3)] font-mono-custom tracking-[2px] uppercase px-3 mb-1.5">Watchlist</div>
-          {isAuthenticated ? (
+          {isLoggedIn ? (
             watchlist.map((sym) => {
               const t = tickers[sym]
               if (!t) return null
@@ -137,8 +147,37 @@ export default function Sidebar({
             onClick={() => guardedNav('settings', 'Sign in to access Settings and configure your feed, AI model, and notifications.')}
           >
             <span>⚙</span> Settings
-            {!isAuthenticated && <span className="ml-auto text-[10px] text-[var(--text3)] font-mono-custom">Sign in</span>}
+            {!isLoggedIn && <span className="ml-auto text-[10px] text-[var(--text3)] font-mono-custom">Sign in</span>}
           </NavItem>
+          {loading ? (
+            <div className="mt-2 px-3 py-2 text-[11px] font-mono-custom text-[var(--text3)]">
+              Loading session...
+            </div>
+          ) : isLoggedIn ? (
+            <div className="mt-2 rounded-md border border-[var(--border)] bg-[var(--bg3)] px-3 py-2.5">
+              <div className="text-[10px] font-mono-custom uppercase tracking-[1px] text-[var(--text3)]">
+                Signed In
+              </div>
+              <div className="mt-1 truncate text-[12px] text-[var(--text)] font-mono-custom">
+                {user.email ?? 'Account active'}
+              </div>
+              <button
+                onClick={() => {
+                  void onSignOut()
+                }}
+                className="mt-2 w-full rounded-md border border-[var(--border)] px-3 py-2 text-[12px] font-mono-custom text-[var(--text2)] hover:bg-[var(--bg2)] hover:text-[var(--text)] transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => openAuthModal('Sign in to access your full feed, watchlist, AI summaries, and settings.')}
+              className="mt-2 flex items-center justify-center gap-2.5 w-full px-3 py-2 rounded-md text-[12px] font-mono-custom text-[var(--accent)] border border-[var(--accent)] bg-[#3b82f615] hover:bg-[#3b82f625] transition-colors"
+            >
+              <span>→</span> Sign In
+            </button>
+          )}
         </div>
       </nav>
 

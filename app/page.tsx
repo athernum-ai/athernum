@@ -62,7 +62,10 @@ export default function Home() {
           currentTicker={currentTicker}
           tickers={tickers}
           watchlist={watchlist}
+          user={auth.user}
+          loading={auth.loading}
           isAuthenticated={auth.isAuthenticated}
+          onSignOut={auth.signOut}
         />
 
         <main className="bg-[var(--bg)] overflow-y-auto">
