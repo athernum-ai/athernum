@@ -3,16 +3,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { WatchlistCard, ArticleCard } from '@/components/ui'
 import FilingArticleCard from '@/components/FilingArticleCard'
-import { genChartData, BASE_PRICES } from '@/lib/data'
+import { genChartData, BASE_PRICES, FEED_ARTICLES } from '@/lib/data'
 import { getLatestFilingsForFeed } from '@/lib/feedFilings'
 import { useAuthModal } from '@/lib/useAuthModal'
-import type { Article, SupabaseFilingRecord, TickerMap } from '@/types'
+import type { SupabaseFilingRecord, TickerMap } from '@/types'
 
 interface FeedPageProps {
   onTickerNav: (ticker: string) => void
   tickers: TickerMap
   watchlist: string[]
-  articles: Article[]
   isAuthenticated: boolean
   compactFeed: boolean
   showPremarket: boolean
@@ -22,7 +21,6 @@ export default function FeedPage({
   onTickerNav,
   tickers,
   watchlist,
-  articles,
   isAuthenticated,
   compactFeed,
   showPremarket,
@@ -116,14 +114,14 @@ export default function FeedPage({
         </button>
       ) : null}
 
-      {/* Top Stories */}
+      {/* Top Stories — always static */}
       <div className={`flex items-baseline gap-3 ${compactFeed ? 'mb-2' : 'mb-4'}`}>
         <h2 className="font-serif-custom italic text-[20px] text-[var(--text)]">Top Stories</h2>
       </div>
 
-      {articles.map((article, i) => (
+      {FEED_ARTICLES.map((article, i) => (
         <ArticleCard
-          key={article.id ?? `${article.source}-${article.title}-${i}`}
+          key={`${article.source}-${article.title}-${i}`}
           article={article}
           onClick={() => handleArticleClick(article.ticker)}
           compact={compactFeed}

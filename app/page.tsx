@@ -23,8 +23,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery]     = useState('')
 
   // Settings state
-  const [compactFeed, setCompactFeed]         = useState(false)
-  const [showPremarket, setShowPremarket]     = useState(true)
+  const [compactFeed, setCompactFeed]     = useState(false)
+  const [showPremarket, setShowPremarket] = useState(true)
   const [emailNotifications, setEmailNotifications] = useState({
     earnings: true,
     priceMoves: false,
@@ -34,7 +34,6 @@ export default function Home() {
   const {
     tickers,
     watchlist,
-    articles,
     addToWatchlist,
     removeFromWatchlist,
     refreshData,
@@ -45,7 +44,6 @@ export default function Home() {
 
   useEffect(() => { setIsMounted(true) }, [])
 
-  // fetch premarket whenever watchlist changes or toggle flips
   useEffect(() => {
     if (showPremarket && watchlist.length > 0) {
       refreshPremarket(watchlist)
@@ -104,7 +102,6 @@ export default function Home() {
               onTickerNav={handleTickerNav}
               tickers={tickers}
               watchlist={watchlist}
-              articles={articles}
               isAuthenticated={auth.isAuthenticated}
               compactFeed={compactFeed}
               showPremarket={showPremarket}

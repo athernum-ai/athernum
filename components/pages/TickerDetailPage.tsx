@@ -10,26 +10,11 @@ import {
 } from 'recharts'
 import { Pill, ArticleCard } from '@/components/ui'
 import { useAuthModal } from '@/lib/useAuthModal'
-import { SUMMARIES, genChartData, BASE_PRICES, RANGE_CONFIG } from '@/lib/data'
+import { getTickerSummaries, FEED_ARTICLES, genChartData, BASE_PRICES, RANGE_CONFIG } from '@/lib/data'
 import type { TickerMap } from '@/types'
 
 const RANGES = ['1D', '1W', '1M', '3M', '1Y'] as const
 type Range = (typeof RANGES)[number]
-
-const RELATED_ARTICLES = [
-  {
-    source: 'Reuters', time: '2h ago',
-    tags: [{ label: 'Reuters', variant: 'default' as const }],
-    title: 'Apple beats Q2 estimates with $94.8B revenue',
-    summary: 'iPhone sales resilient despite macro headwinds; services hits record...',
-  },
-  {
-    source: "Barron's", time: '3h ago',
-    tags: [{ label: "Barron's", variant: 'default' as const }],
-    title: "Why Apple's services margin expansion is the real story this quarter",
-    summary: 'App Store take rates and advertising revenue drove gross margin to 46.6%...',
-  },
-]
 
 interface TickerDetailPageProps {
   ticker: string
@@ -66,6 +51,13 @@ export default function TickerDetailPage({
   const base = BASE_PRICES[ticker] ?? 180
   const inWatchlist = watchlist.includes(ticker)
 
+  // per-ticker summaries
+  const summaries = getTickerSummaries(ticker)
+  const summary = summaries[level]
+
+  // related articles filtered to this ticker
+  const relatedArticles = FEED_ARTICLES.filter((a) => a.ticker === ticker)
+
   const chartData = useMemo(() => {
     const values = genChartData(cfg.n, base - cfg.n * cfg.trend, cfg.vol, cfg.trend)
     return values.map((v, i) => ({ i, value: v }))
@@ -89,7 +81,6 @@ export default function TickerDetailPage({
 
   const isUp = t.dir === 'up'
   const chartColor = isUp ? '#10b981' : '#ef4444'
-  const summary = SUMMARIES[level]
 
   const handleWatchlistClick = () => {
     if (!isAuthenticated) {
@@ -234,7 +225,7 @@ export default function TickerDetailPage({
 
       {/* Level Tabs */}
       <div className="flex gap-1.5 mb-4">
-        {SUMMARIES.map((s, i) => (
+        {summaries.map((s, i) => (
           <button
             key={s.badge}
             onClick={() => handleSummaryLevel(i)}
@@ -269,12 +260,16 @@ export default function TickerDetailPage({
       )}
 
       {/* Related Articles */}
-      <div className="flex items-baseline gap-3 mb-3">
-        <h2 className="font-serif-custom italic text-[20px] text-[var(--text)]">Related Articles</h2>
-      </div>
-      {RELATED_ARTICLES.map((a, i) => (
-        <ArticleCard key={i} article={a} onClick={handleArticleClick} />
-      ))}
+      {relatedArticles.length > 0 && (
+        <>
+          <div className="flex items-baseline gap-3 mb-3">
+            <h2 className="font-serif-custom italic text-[20px] text-[var(--text)]">Related Articles</h2>
+          </div>
+          {relatedArticles.map((a, i) => (
+            <ArticleCard key={i} article={a} onClick={handleArticleClick} />
+          ))}
+        </>
+      )}
     </div>
   )
 }
