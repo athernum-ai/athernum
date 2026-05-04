@@ -90,9 +90,6 @@ export default function Sidebar({
           <NavItem active={activePage === 'feed'} onClick={() => onNav('feed')}>
             <span>📰</span> Feed
           </NavItem>
-          <NavItem active={activePage === 'search'} onClick={() => onNav('search')}>
-            <span>🔍</span> Search
-          </NavItem>
           {/* Gated pages */}
           <NavItem
             active={activePage === 'events'}

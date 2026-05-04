@@ -8,13 +8,19 @@ interface SettingsPageProps {
   theme: Theme
   onToggleTheme: () => void
   isAuthenticated: boolean
+  compactFeed: boolean
+  onToggleCompactFeed: () => void
+  showPremarket: boolean
+  onTogglePremarket: () => void
+  emailNotifications: { earnings: boolean; priceMoves: boolean }
+  onToggleEarningsAlerts: () => void
+  onTogglePriceMoveAlerts: () => void
 }
 
-function Toggle({ defaultOn = false }: { defaultOn?: boolean }) {
-  const [on, setOn] = useState(defaultOn)
+function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   return (
     <button
-      onClick={() => setOn((p) => !p)}
+      onClick={onToggle}
       className={[
         'relative w-10 h-[22px] rounded-full flex-shrink-0 transition-colors duration-200 border-none outline-none cursor-pointer',
         on ? 'bg-[var(--accent)]' : 'bg-[var(--border2)]',
@@ -22,10 +28,12 @@ function Toggle({ defaultOn = false }: { defaultOn?: boolean }) {
       aria-checked={on}
       role="switch"
     >
-      <span className={[
-        'absolute top-[3px] left-[3px] w-4 h-4 bg-white rounded-full shadow transition-transform duration-200',
-        on ? 'translate-x-[18px]' : 'translate-x-0',
-      ].join(' ')} />
+      <span
+        className={[
+          'absolute top-[3px] left-[3px] w-4 h-4 bg-white rounded-full shadow transition-transform duration-200',
+          on ? 'translate-x-[18px]' : 'translate-x-0',
+        ].join(' ')}
+      />
     </button>
   )
 }
@@ -45,7 +53,9 @@ function SettingsRow({ label, desc, control }: { label: string; desc: string; co
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-[var(--bg2)] border border-[var(--border)] rounded-[10px] p-5 mb-4">
-      <div className="text-[11px] text-[var(--text3)] font-mono-custom tracking-[1px] uppercase mb-3">{title}</div>
+      <div className="text-[11px] text-[var(--text3)] font-mono-custom tracking-[1px] uppercase mb-3">
+        {title}
+      </div>
       {children}
     </div>
   )
@@ -57,7 +67,18 @@ const SelectBox = ({ options }: { options: string[] }) => (
   </select>
 )
 
-export default function SettingsPage({ theme, onToggleTheme, isAuthenticated }: SettingsPageProps) {
+export default function SettingsPage({
+  theme,
+  onToggleTheme,
+  isAuthenticated,
+  compactFeed,
+  onToggleCompactFeed,
+  showPremarket,
+  onTogglePremarket,
+  emailNotifications,
+  onToggleEarningsAlerts,
+  onTogglePriceMoveAlerts,
+}: SettingsPageProps) {
   const { openAuthModal } = useAuthModal()
 
   useEffect(() => {
@@ -92,22 +113,18 @@ export default function SettingsPage({ theme, onToggleTheme, isAuthenticated }: 
         <SettingsRow
           label="Dark Mode"
           desc="Use dark theme across the app"
-          control={
-            <button
-              onClick={onToggleTheme}
-              className={[
-                'px-3 py-1.5 rounded-md text-[12px] font-mono-custom border transition-colors',
-                theme === 'dark'
-                  ? 'bg-[var(--accent)]/10 border-[var(--accent)]/30 text-[var(--accent)]'
-                  : 'bg-[var(--bg3)] border-[var(--border)] text-[var(--text2)]',
-              ].join(' ')}
-            >
-              {theme === 'dark' ? 'Dark' : 'Light'}
-            </button>
-          }
+          control={<Toggle on={theme === 'dark'} onToggle={onToggleTheme} />}
         />
-        <SettingsRow label="Compact Feed"        desc="Show more articles with less spacing"          control={<Toggle />} />
-        <SettingsRow label="Show Premarket Data"  desc="Display premarket price changes in watchlist"  control={<Toggle defaultOn />} />
+        <SettingsRow
+          label="Compact Feed"
+          desc="Show more articles with shorter previews and tighter spacing"
+          control={<Toggle on={compactFeed} onToggle={onToggleCompactFeed} />}
+        />
+        <SettingsRow
+          label="Show Premarket Data"
+          desc="Display premarket price changes on watchlist cards"
+          control={<Toggle on={showPremarket} onToggle={onTogglePremarket} />}
+        />
       </Section>
 
       <Section title="AI Summaries">
@@ -116,16 +133,22 @@ export default function SettingsPage({ theme, onToggleTheme, isAuthenticated }: 
           desc="Brief · Standard · Detailed"
           control={<SelectBox options={['Brief', 'Standard', 'Detailed']} />}
         />
-        <SettingsRow
-          label="AI Model"
-          desc="Powered by Ollama locally"
-          control={<SelectBox options={['llama3.2:3b', 'mistral', 'phi4']} />}
-        />
       </Section>
 
       <Section title="Notifications">
-        <SettingsRow label="Earnings Alerts"   desc="Notify 1 hour before earnings for watched tickers" control={<Toggle defaultOn />} />
-        <SettingsRow label="Price Move Alerts" desc="Alert on moves >5% for watched tickers"             control={<Toggle />} />
+        <div className="mb-3 text-[11px] text-[var(--text3)] font-mono-custom">
+          Alerts are sent to <span className="text-[var(--text2)]">your account email</span>
+        </div>
+        <SettingsRow
+          label="Earnings Alerts"
+          desc="Email 1 hour before earnings for watched tickers"
+          control={<Toggle on={emailNotifications.earnings} onToggle={onToggleEarningsAlerts} />}
+        />
+        <SettingsRow
+          label="Price Move Alerts"
+          desc="Email when a watched ticker moves more than 5%"
+          control={<Toggle on={emailNotifications.priceMoves} onToggle={onTogglePriceMoveAlerts} />}
+        />
       </Section>
     </div>
   )

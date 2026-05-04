@@ -42,14 +42,15 @@ export const SUMMARIES: SummaryLevel[] = [
 ]
 
 export const EVENTS: CalendarEvent[] = [
-  { date: 'Apr 15', name: 'AAPL — Q2 Earnings Call',         desc: 'After-market close · EPS est. $1.50 · Rev est. $93.2B',              urgency: 'today'  },
-  { date: 'Apr 17', name: 'TSLA — Q1 Earnings Call',         desc: 'After-market close · EPS est. $0.47 · Rev est. $24.1B',              urgency: 'soon'   },
-  { date: 'Apr 22', name: 'META — Q1 Earnings Call',         desc: 'After-market close · EPS est. $4.62 · Rev est. $36.2B',              urgency: 'soon'   },
-  { date: 'Apr 23', name: 'AAPL — Ex-Dividend Date',         desc: '$0.25/share · Record date Apr 22',                                   urgency: 'normal' },
-  { date: 'Apr 29', name: 'FOMC Rate Decision',               desc: 'Fed target rate · Market implied: hold at 4.25–4.50%',               urgency: 'normal' },
-  { date: 'Apr 30', name: 'NVDA — GTC Developer Conference', desc: 'Jensen Huang keynote · Next-gen Blackwell Ultra reveal expected',    urgency: 'normal' },
-  { date: 'May 8',  name: 'NVDA — Q1 Earnings Call',         desc: 'After-market close · EPS est. $0.88 · Rev est. $28.0B',              urgency: 'normal' },
-  { date: 'May 14', name: 'CPI Print — April 2025',           desc: 'Bureau of Labor Statistics · Prior: 2.8% YoY',                      urgency: 'normal' },
+  { date: 'Apr 15', name: 'AAPL — Q2 Earnings Call',         desc: 'After-market close · EPS est. $1.50 · Rev est. $93.2B',           urgency: 'today',  ticker: 'AAPL', type: 'Earnings'    },
+  { date: 'Apr 17', name: 'TSLA — Q1 Earnings Call',         desc: 'After-market close · EPS est. $0.47 · Rev est. $24.1B',           urgency: 'soon',   ticker: 'TSLA', type: 'Earnings'    },
+  { date: 'Apr 22', name: 'META — Q1 Earnings Call',         desc: 'After-market close · EPS est. $4.62 · Rev est. $36.2B',           urgency: 'soon',   ticker: 'META', type: 'Earnings'    },
+  { date: 'Apr 23', name: 'AAPL — Ex-Dividend Date',         desc: '$0.25/share · Record date Apr 22',                                urgency: 'normal', ticker: 'AAPL', type: 'Ex-Dividend' },
+  { date: 'Apr 29', name: 'FOMC Rate Decision',               desc: 'Fed target rate · Market implied: hold at 4.25–4.50%',            urgency: 'normal',                 type: 'Fed Meeting' },
+  { date: 'Apr 30', name: 'NVDA — GTC Developer Conference', desc: 'Jensen Huang keynote · Next-gen Blackwell Ultra reveal expected', urgency: 'normal', ticker: 'NVDA', type: 'Conference'  },
+  { date: 'May 1',  name: 'MSFT — Q3 Earnings Call',         desc: 'After-market close · EPS est. $3.22 · Rev est. $68.4B',           urgency: 'normal', ticker: 'MSFT', type: 'Earnings'    },
+  { date: 'May 8',  name: 'NVDA — Q1 Earnings Call',         desc: 'After-market close · EPS est. $0.88 · Rev est. $28.0B',           urgency: 'normal', ticker: 'NVDA', type: 'Earnings'    },
+  { date: 'May 14', name: 'CPI Print — April 2025',           desc: 'Bureau of Labor Statistics · Prior: 2.8% YoY',                   urgency: 'normal',                 type: 'Macro'       },
 ]
 
 export const FEED_ARTICLES: Article[] = [

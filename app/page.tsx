@@ -17,17 +17,40 @@ import SettingsPage         from '@/components/pages/SettingsPage'
 import FilingsDashboardPage from '@/components/pages/FilingsDashboardPage'
 
 export default function Home() {
-  const [isMounted, setIsMounted] = useState(false)
+  const [isMounted, setIsMounted]         = useState(false)
   const [activePage, setActivePage]       = useState<PageId>('feed')
   const [currentTicker, setCurrentTicker] = useState('AAPL')
   const [searchQuery, setSearchQuery]     = useState('')
 
+  // Settings state
+  const [compactFeed, setCompactFeed]         = useState(false)
+  const [showPremarket, setShowPremarket]     = useState(true)
+  const [emailNotifications, setEmailNotifications] = useState({
+    earnings: true,
+    priceMoves: false,
+  })
+
   const auth = useSupabaseAuth()
-  const { tickers, watchlist, articles, addToWatchlist, removeFromWatchlist, refreshData, watchlistMessage } =
-    useSupabaseData(auth.user?.id ?? null)
+  const {
+    tickers,
+    watchlist,
+    articles,
+    addToWatchlist,
+    removeFromWatchlist,
+    refreshData,
+    refreshPremarket,
+    watchlistMessage,
+  } = useSupabaseData(auth.user?.id ?? null)
   const { theme, toggleTheme } = useTheme()
 
   useEffect(() => { setIsMounted(true) }, [])
+
+  // fetch premarket whenever watchlist changes or toggle flips
+  useEffect(() => {
+    if (showPremarket && watchlist.length > 0) {
+      refreshPremarket(watchlist)
+    }
+  }, [watchlist, showPremarket])
 
   const handleNav = useCallback((page: PageId) => setActivePage(page), [])
 
@@ -45,7 +68,6 @@ export default function Home() {
 
   return (
     <>
-      {/* Auth modal — sits outside the grid, always mounted, shown via context */}
       <AuthModal
         user={auth.user}
         loading={auth.loading}
@@ -77,17 +99,19 @@ export default function Home() {
             isAuthenticated={auth.isAuthenticated}
           />
 
-          <div style={{ display: activePage === 'feed'               ? 'block' : 'none' }}>
+          <div style={{ display: activePage === 'feed' ? 'block' : 'none' }}>
             <FeedPage
               onTickerNav={handleTickerNav}
               tickers={tickers}
               watchlist={watchlist}
               articles={articles}
               isAuthenticated={auth.isAuthenticated}
+              compactFeed={compactFeed}
+              showPremarket={showPremarket}
             />
           </div>
 
-          <div style={{ display: activePage === 'ticker'             ? 'block' : 'none' }}>
+          <div style={{ display: activePage === 'ticker' ? 'block' : 'none' }}>
             <TickerDetailPage
               ticker={currentTicker}
               onBack={() => handleNav('feed')}
@@ -100,7 +124,7 @@ export default function Home() {
             />
           </div>
 
-          <div style={{ display: activePage === 'search'             ? 'block' : 'none' }}>
+          <div style={{ display: activePage === 'search' ? 'block' : 'none' }}>
             <SearchPage
               onTickerNav={handleTickerNav}
               initialQuery={searchQuery}
@@ -110,19 +134,30 @@ export default function Home() {
             />
           </div>
 
-          <div style={{ display: activePage === 'events'             ? 'block' : 'none' }}>
+          <div style={{ display: activePage === 'events' ? 'block' : 'none' }}>
             <EventsPage isAuthenticated={auth.isAuthenticated} />
           </div>
 
-          <div style={{ display: activePage === 'settings'           ? 'block' : 'none' }}>
+          <div style={{ display: activePage === 'settings' ? 'block' : 'none' }}>
             <SettingsPage
               theme={theme}
               onToggleTheme={toggleTheme}
               isAuthenticated={auth.isAuthenticated}
+              compactFeed={compactFeed}
+              onToggleCompactFeed={() => setCompactFeed((p) => !p)}
+              showPremarket={showPremarket}
+              onTogglePremarket={() => setShowPremarket((p) => !p)}
+              emailNotifications={emailNotifications}
+              onToggleEarningsAlerts={() =>
+                setEmailNotifications((p) => ({ ...p, earnings: !p.earnings }))
+              }
+              onTogglePriceMoveAlerts={() =>
+                setEmailNotifications((p) => ({ ...p, priceMoves: !p.priceMoves }))
+              }
             />
           </div>
 
-          <div style={{ display: activePage === 'filings-dashboard'  ? 'block' : 'none' }}>
+          <div style={{ display: activePage === 'filings-dashboard' ? 'block' : 'none' }}>
             <FilingsDashboardPage
               onTickerNav={handleTickerNav}
               isAuthenticated={auth.isAuthenticated}
