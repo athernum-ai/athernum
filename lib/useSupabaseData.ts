@@ -16,6 +16,7 @@ interface SupabaseData {
   addToWatchlist: (symbol: string) => Promise<void>
   removeFromWatchlist: (symbol: string) => Promise<void>
   refreshData: () => Promise<void>
+  refreshPremarket: (symbols: string[]) => Promise<void>
 }
 
 type SupabaseErrorLike = {
@@ -27,7 +28,6 @@ type SupabaseErrorLike = {
 
 function getErrorDetails(error: unknown): SupabaseErrorLike {
   if (!error || typeof error !== 'object') return {}
-
   const candidate = error as SupabaseErrorLike
   return {
     message: candidate.message,
@@ -60,17 +60,45 @@ export function useSupabaseData(userId: string | null): SupabaseData {
   const [connected, setConnected] = useState(false)
   const [watchlistMessage, setWatchlistMessage] = useState<string | null>(null)
 
-  const getAuthenticatedUser = async (): Promise<{ supabase: ReturnType<typeof getSupabaseClient>; user: User | null }> => {
+  const getAuthenticatedUser = async (): Promise<{
+    supabase: ReturnType<typeof getSupabaseClient>
+    user: User | null
+  }> => {
     const supabase = getSupabaseClient()
     if (!supabase) return { supabase: null, user: null }
-
     const { data, error } = await supabase.auth.getUser()
     if (error) {
       logSupabaseError('supabase.auth.getUser failed', error)
       return { supabase, user: null }
     }
-
     return { supabase, user: data.user ?? null }
+  }
+
+  const refreshPremarket = async (symbols: string[]) => {
+    if (!symbols.length) return
+    try {
+      const res = await fetch(`/api/premarket?symbols=${symbols.join(',')}`)
+      if (!res.ok) return
+      const json = await res.json()
+      if (!json.ok || !json.data) return
+
+      setTickers((prev) => {
+        const next = { ...prev }
+        symbols.forEach((sym) => {
+          const pm = json.data[sym]
+          if (pm && next[sym]) {
+            next[sym] = {
+              ...next[sym],
+              premarket: pm.chg,
+              premktDir: pm.dir,
+            }
+          }
+        })
+        return next
+      })
+    } catch (err) {
+      console.error('premarket fetch error', err)
+    }
   }
 
   const refreshData = async () => {
@@ -82,14 +110,10 @@ export function useSupabaseData(userId: string | null): SupabaseData {
     }
 
     setLoading(true)
-    if (!userId) {
-      setWatchlist([])
-    }
+    if (!userId) setWatchlist([])
 
     const [tickersRes, watchlistRes, articlesRes] = await Promise.all([
-      supabase
-        .from('tickers')
-        .select('symbol,name,price,chg,dir,open,high,low,cap'),
+      supabase.from('tickers').select('symbol,name,price,chg,dir,open,high,low,cap'),
       userId
         ? supabase.from('watchlist').select('symbol').eq('user_id', userId).order('position')
         : Promise.resolve({ data: [], error: null }),
@@ -101,21 +125,27 @@ export function useSupabaseData(userId: string | null): SupabaseData {
     ])
 
     if (!tickersRes.error && tickersRes.data) {
-      const map: TickerMap = {}
-      tickersRes.data.forEach((row: any) => {
-        if (!row.symbol) return
-        map[row.symbol] = {
-          name: row.name ?? row.symbol,
-          price: row.price ?? '-',
-          chg: row.chg ?? '0%',
-          dir: row.dir === 'dn' ? 'dn' : 'up',
-          open: row.open ?? '-',
-          high: row.high ?? '-',
-          low: row.low ?? '-',
-          cap: row.cap ?? '-',
-        }
+      // ✅ Use setTickers with prev so we can preserve existing premarket data
+      setTickers((prev) => {
+        const map: TickerMap = {}
+        tickersRes.data.forEach((row: any) => {
+          if (!row.symbol) return
+          map[row.symbol] = {
+            name: row.name ?? row.symbol,
+            price: row.price ?? '-',
+            chg: row.chg ?? '0%',
+            dir: row.dir === 'dn' ? 'dn' : 'up',
+            open: row.open ?? '-',
+            high: row.high ?? '-',
+            low: row.low ?? '-',
+            cap: row.cap ?? '-',
+            // ✅ Carry over any premarket data already fetched
+            premarket: prev[row.symbol]?.premarket,
+            premktDir: prev[row.symbol]?.premktDir,
+          }
+        })
+        return Object.keys(map).length ? map : prev
       })
-      if (Object.keys(map).length) setTickers(map)
     }
 
     if (watchlistRes.error) {
@@ -124,9 +154,7 @@ export function useSupabaseData(userId: string | null): SupabaseData {
     }
 
     if (!watchlistRes.error && watchlistRes.data) {
-      const symbols = watchlistRes.data
-        .map((r: any) => r.symbol)
-        .filter(Boolean)
+      const symbols = watchlistRes.data.map((r: any) => r.symbol).filter(Boolean)
       setWatchlist(symbols)
     }
 
@@ -163,7 +191,6 @@ export function useSupabaseData(userId: string | null): SupabaseData {
       setWatchlistMessage('Sign in to save tickers to your watchlist.')
       return
     }
-
     if (!supabase) {
       setWatchlistMessage('Supabase is not configured.')
       return
@@ -171,10 +198,14 @@ export function useSupabaseData(userId: string | null): SupabaseData {
 
     setWatchlistMessage(null)
     setWatchlist((prev) => (prev.includes(sym) ? prev : [...prev, sym]))
+
     try {
       const { error } = await supabase
         .from('watchlist')
-        .upsert({ user_id: user.id, symbol: sym, position: watchlist.length }, { onConflict: 'user_id,symbol' })
+        .upsert(
+          { user_id: user.id, symbol: sym, position: watchlist.length },
+          { onConflict: 'user_id,symbol' }
+        )
 
       if (error) {
         logSupabaseError('addToWatchlist failed', error, { userId: user.id, symbol: sym })
@@ -196,7 +227,6 @@ export function useSupabaseData(userId: string | null): SupabaseData {
       setWatchlistMessage('Sign in to manage your watchlist.')
       return
     }
-
     if (!supabase) {
       setWatchlistMessage('Supabase is not configured.')
       return
@@ -204,6 +234,7 @@ export function useSupabaseData(userId: string | null): SupabaseData {
 
     setWatchlistMessage(null)
     setWatchlist((prev) => prev.filter((s) => s !== sym))
+
     try {
       const { error } = await supabase
         .from('watchlist')
@@ -233,5 +264,6 @@ export function useSupabaseData(userId: string | null): SupabaseData {
     addToWatchlist,
     removeFromWatchlist,
     refreshData,
+    refreshPremarket,
   }
 }

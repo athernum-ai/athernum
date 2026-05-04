@@ -9,6 +9,8 @@ export interface TickerData {
   high: string
   low: string
   cap: string
+  premarket?: string
+  premktDir?: 'up' | 'dn'
 }
 
 export interface TickerMap {
@@ -108,4 +110,13 @@ export interface ImportJobResult {
 export interface ImportJobConfig {
   tickers: string[]
   filingTypes?: ('10-K' | '10-Q')[]
+}
+
+export interface CalendarEvent {
+  date: string
+  name: string
+  desc: string
+  urgency: 'today' | 'soon' | 'normal'
+  ticker?: string
+  type: 'Earnings' | 'Ex-Dividend' | 'Fed Meeting' | 'Conference' | 'Macro'
 }
