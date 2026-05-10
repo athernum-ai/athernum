@@ -1,143 +1,135 @@
+/**
+ * SEC EDGAR Filing Fetcher
+ *
+ * Fetches SEC 10-K and 10-Q (annual and quarterly reports) filings from the SEC EDGAR API.
+ */
+
 import type { SECFiling, SECFilingResponse } from '@/types'
 
-const SEC_API_BASE = 'https://data.sec.gov/api/xbrl'
-const SEC_CIKS = new Map<string, string>([
-  // Common tickers to CIK mappings (you can expand this)
-  ['AAPL', '0000320193'],
-  ['NVDA', '0001045810'],
-  ['TSLA', '0001318605'],
-  ['META', '0001326801'],
-  ['MSFT', '0000789019'],
+const SUBMISSIONS_BASE = 'https://data.sec.gov/submissions'
+const ARCHIVES_BASE    = 'https://www.sec.gov/Archives/edgar/data'
+const TICKERS_URL      = 'https://www.sec.gov/files/company_tickers.json'
+
+const USER_AGENT = process.env.EDGAR_USER_AGENT ?? 'Athernum, UTDallas CS3345 Student Project, athernum@proton.me'
+
+const CIK_CACHE = new Map<string, string>([
+  ['AAPL',  '0000320193'],
+  ['NVDA',  '0001045810'],
+  ['TSLA',  '0001318605'],
+  ['META',  '0001326801'],
+  ['MSFT',  '0000789019'],
   ['GOOGL', '0001652044'],
-  ['AMZN', '0001018724'],
-  ['GOOG', '0001652044'],
+  ['AMZN',  '0001018724'],
 ])
 
-/**
- * Convert ticker symbol to SEC CIK
- * For tickets not in the map, fetch from SEC's ticker API
- */
-async function getTickerToCIK(ticker: string): Promise<string> {
-  const cached = SEC_CIKS.get(ticker.toUpperCase())
-  if (cached) return cached
+// Helpers
 
-  try {
-    // Fetch from SEC's company tickers JSON file
-    const response = await fetch(
-      'https://www.sec.gov/files/company_tickers.json'
-    )
-    const data: Record<string, { cik_str: number; ticker: string; title: string }> = await response.json()
-
-    for (const company of Object.values(data)) {
-      if (company.ticker.toUpperCase() === ticker.toUpperCase()) {
-        const cik = String(company.cik_str).padStart(10, '0')
-        SEC_CIKS.set(ticker.toUpperCase(), cik)
-        return cik
-      }
-    }
-
-    throw new Error(`Ticker ${ticker} not found`)
-  } catch (error) {
-    console.error(`Error fetching CIK for ${ticker}:`, error)
-    throw new Error(`Could not find CIK for ticker: ${ticker}`)
-  }
+function edgarHeaders(): HeadersInit {
+  return { 'User-Agent': USER_AGENT, Accept: 'application/json' }
 }
 
-/**
- * Fetch the latest 10-K or 10-Q filing for a given ticker
- */
-async function getLatestFiling(
+export async function getTickerToCIK(ticker: string): Promise<string> {
+  const upper  = ticker.toUpperCase()
+  const cached = CIK_CACHE.get(upper)
+  if (cached) return cached
+
+  const res = await fetch(TICKERS_URL, { headers: edgarHeaders() })
+  if (!res.ok) throw new Error(`Failed to fetch SEC tickers list: ${res.status}`)
+
+  const data: Record<string, { cik_str: number; ticker: string }> = await res.json()
+
+  for (const company of Object.values(data)) {
+    if (company.ticker.toUpperCase() === upper) {
+      const cik = String(company.cik_str).padStart(10, '0')
+      CIK_CACHE.set(upper, cik)
+      return cik
+    }
+  }
+
+  throw new Error(`Ticker "${ticker}" not found in SEC tickers list`)
+}
+
+async function fetchSubmissions(cik: string): Promise<any> {
+  const url = `${SUBMISSIONS_BASE}/CIK${cik}.json`
+  const res = await fetch(url, { headers: edgarHeaders() })
+  if (!res.ok) throw new Error(`EDGAR submissions fetch failed for CIK ${cik}: ${res.status}`)
+  return res.json()
+}
+
+async function fetchFilingText(
+  cik: string,
+  accessionRaw: string,
+  primaryDoc: string
+): Promise<string> {
+  const accessionClean = accessionRaw.replace(/-/g, '')
+  const cikInt         = parseInt(cik, 10)
+  const url            = `${ARCHIVES_BASE}/${cikInt}/${accessionClean}/${primaryDoc}`
+
+  const res = await fetch(url, {
+    headers: { 'User-Agent': USER_AGENT, Accept: 'text/html,text/plain' },
+  })
+  if (!res.ok) throw new Error(`Failed to fetch filing document at ${url}: ${res.status}`)
+
+  const html = await res.text()
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s{2,}/g, ' ').trim()
+}
+
+// Public API
+
+export async function getLatestFiling(
   ticker: string,
   filingTypes: readonly ('10-K' | '10-Q')[] = ['10-K', '10-Q']
 ): Promise<SECFilingResponse> {
   try {
-    const cik = await getTickerToCIK(ticker)
+    const cik         = await getTickerToCIK(ticker)
+    const submissions = await fetchSubmissions(cik)
 
-    // Use data.sec.gov API endpoint
-    const companyfactsUrl = `https://data.sec.gov/api/xbrl/companyfacts/CIK${cik.replace(/^0+/, '')}.json`
-    
-    let submissionsResponse = await fetch(companyfactsUrl)
+    const recent = submissions.filings?.recent
+    if (!recent) throw new Error(`No recent filings found for CIK ${cik}`)
 
-    // If company facts API fails, return mock filing for testing
-    if (!submissionsResponse.ok) {
-      // Return a mock filing so testing can proceed
-      const mockFiling: SECFiling = {
-        accessionNumber: '0000000000-00-000000',
-        filingDate: new Date().toISOString().split('T')[0],
-        reportDate: new Date().toISOString().split('T')[0],
-        filingType: '10-K',
-        documentUrl: `https://data.sec.gov/api/xbrl/companyfacts/CIK${cik}.json`,
-        htmlUrl: `https://data.sec.gov/api/xbrl/companyfacts/CIK${cik}.json`,
-        ticker: ticker.toUpperCase(),
+    const { form, accessionNumber, filingDate, reportDate, primaryDocument } = recent as {
+      form: string[]
+      accessionNumber: string[]
+      filingDate: string[]
+      reportDate: string[]
+      primaryDocument: string[]
+    }
+
+    for (const targetForm of filingTypes) {
+      const idx = form.findIndex((f) => f === targetForm)
+      if (idx === -1) continue
+
+      const accRaw       = accessionNumber[idx]
+      const primaryDoc   = primaryDocument[idx]
+      const accessionClean = accRaw.replace(/-/g, '')
+      const cikInt       = parseInt(cik, 10)
+      const documentUrl  = `${ARCHIVES_BASE}/${cikInt}/${accessionClean}/${primaryDoc}`
+      const rawText      = await fetchFilingText(cik, accRaw, primaryDoc)
+
+      const filing: SECFiling = {
+        accessionNumber: accRaw,
+        filingDate:      filingDate[idx],
+        reportDate:      reportDate[idx] ?? filingDate[idx],
+        filingType:      targetForm,
+        documentUrl,
+        htmlUrl:         documentUrl,
+        ticker:          ticker.toUpperCase(),
+        rawText,
       }
 
-      return {
-        success: true,
-        filing: mockFiling,
-      }
+      return { success: true, filing }
     }
 
-    const companyData = await submissionsResponse.json()
-
-    // Extract filings from the response - look in different places depending on API response
-    let latestFiling: any = null
-
-    if (companyData.units && typeof companyData.units === 'object') {
-      // XBRL Company Facts API format
-      // Just use the first available data point
-      for (const [key, value] of Object.entries(companyData.units)) {
-        if (typeof value === 'object' && !Array.isArray(value)) {
-          // Found a unit with data
-          latestFiling = { form: filingTypes[0], accession_number: 'xbrl-extract' }
-          break
-        }
-      }
-    }
-
-    // If we couldn't find a  specific filing, create a mock one for testing
-    if (!latestFiling) {
-      latestFiling = {
-        form: filingTypes[0],
-        accession_number: '0000000000-00-000000',
-        filing_date: new Date().toISOString().split('T')[0],
-        report_date: new Date().toISOString().split('T')[0],
-      }
-    }
-
-    // Use data.sec.gov API endpoint
-    const documentUrl = `https://data.sec.gov/api/xbrl/companyfacts/CIK${cik}.json`
-
-    const filing: SECFiling = {
-      accessionNumber: latestFiling.accession_number || '0000000000-00-000000',
-      filingDate: latestFiling.filing_date || new Date().toISOString().split('T')[0],
-      reportDate: latestFiling.report_date || new Date().toISOString().split('T')[0],
-      filingType: (latestFiling.form as '10-K' | '10-Q') || '10-K',
-      documentUrl,
-      htmlUrl: documentUrl,
-      ticker: ticker.toUpperCase(),
-    }
-
-    return {
-      success: true,
-      filing,
-    }
+    throw new Error(`No ${filingTypes.join(' or ')} filing found for ${ticker}`)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    return {
-      success: false,
-      error: errorMessage,
-    }
+    return { success: false, error: errorMessage }
   }
 }
 
-/**
- * Batch fetch latest filings for multiple tickers
- */
-async function getLatestFilingsBatch(
+export async function getLatestFilingsBatch(
   tickers: string[],
-  filingTypes?: readonly ('10-K' | '10-Q')[]
+  filingTypes: readonly ('10-K' | '10-Q')[] = ['10-K', '10-Q']
 ): Promise<SECFilingResponse[]> {
-  return Promise.all(tickers.map(ticker => getLatestFiling(ticker, filingTypes)))
+  return Promise.all(tickers.map((ticker) => getLatestFiling(ticker, filingTypes)))
 }
-
-export { getLatestFiling, getLatestFilingsBatch, getTickerToCIK }
